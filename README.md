@@ -36,3 +36,6 @@
   - Write the images back into a directory
   - Implement atleast one function in the filtering procedure
   - (Optional) Thread pooling
+
+## Why not create a thread for each chunk, filter chunk in that thread, and reconstruct chunks sequentially? 
+
