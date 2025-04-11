@@ -37,4 +37,4 @@
   - Implement atleast one function in the filtering procedure
   - (Optional) Thread pooling
 
-## Why not create a thread for reach chunk, apply filtering in that thread, and reconstruct them sequentially? 
+## Why not create a thread for each chunk, filter image in that thread, and reconstruct chunks sequentially? 
