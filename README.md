@@ -38,3 +38,57 @@
   - (Optional) Thread pooling
 
 ## Why not create a thread for each chunk, filter chunk in that thread, and reconstruct chunks sequentially? 
+
+#### **1. Modularity & Separation of Concerns**
+- Each process handles a clear stage:
+  - Reader → Chunker → Filter → Reconstructor.
+- Easier to debug and test each module.
+- You can scale or even replace one stage (like the filter pipeline) without affecting others.
+
+#### **2. Fault Isolation**
+- If one process crashes (e.g., filter segmentation fault), others continue or can recover.
+- Threads share memory space — one bad pointer or race condition could crash everything.
+
+#### **3. Parallelism (True Concurrency)**
+- Processes run truly concurrently on multiple cores.
+- Threads are lightweight but limited by the **Global Interpreter Lock** in some environments (like Python) or by shared CPU time if not tuned properly.
+
+#### **4. Buffering Enables Pipelining**
+- Producer-consumer behavior: `reader` fills buffer while `filter` is working.
+- Prevents bottlenecks — reader doesn't need to wait for the filter or reconstructor.
+
+---
+
+### **Why NOT Just Use Threads Per Chunk?**
+
+#### **1. Threads Add Complexity (Race Conditions, Locks)**
+- Shared memory in threads means you need mutexes, condition variables.
+- Synchronization gets hard fast, especially when writing to/from buffers and reconstructing images.
+
+#### **2. Not Modular**
+- Filter pipeline lives inside the same process/thread context.
+- Harder to test, extend, or swap filters (say, trying different filtering backends).
+
+#### **3. Reconstruction Becomes Trickier**
+- Need to synchronize all threads processing chunks of the same image.
+- Wait for all chunks → merge → reconstruct. That’s a mini orchestration problem on its own.
+
+---
+
+### **So When Would Threads Be Better?**
+
+- If you're dealing with **small-scale data**, or **latency is more important than throughput**.
+- If you want **lower memory footprint** — threads consume less memory than processes.
+- When all operations are **tightly coupled and need shared memory anyway**.
+
+---
+
+### A Hybrid Approach?
+
+You can **combine both**:
+- Use **processes** for pipeline stages (reader, filter, reconstructor).
+- Inside the filter stage, use **threads per chunk** to parallelize filter operations within that module.
+
+This gives you:
+- Isolation + modularity
+- Thread-level parallelism where it matters (e.g., GPU filters, image transforms)
