@@ -12,7 +12,7 @@
       - Mutexes
       - Semaphores
   - Implement atleast one function in the filtering procedure 
-## (2) Image reading and pipelining (ALIYAN)
+## (2) Image reading and filtering procedure - prototype only (ALIYAN)
   - Read from the shared buffer
     - Ensure synchronization
       - Mutexes
@@ -37,4 +37,4 @@
   - Implement atleast one function in the filtering procedure
   - (Optional) Thread pooling
 
-## Why not create a thread for reach chunlk, apply filtering in that thread, and reconstruct them sequentially? 
+## Why not create a thread for reach chunk, apply filtering in that thread, and reconstruct them sequentially? 
