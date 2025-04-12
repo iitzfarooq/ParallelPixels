@@ -10,10 +10,13 @@ find_package(Threads REQUIRED)
 
 # --- Executables ---
 
-# Process 1: Chunking (formerly image_ingest)
+# Process 1: Chunking (formerly image_reader)
 add_executable(chunking
-    pipeline/chunking/src/image_ingest.c
+    pipeline/chunking/src/image_chunker.c
+    pipeline/chunking/src/image_reader.c
     pipeline/chunking/src/image_table.c
+    pipeline/chunking/src/image_queue.c
+    pipeline/chunking/src/chunk_main.c
 )
 # Specify include directories needed by the chunking executable
 target_include_directories(chunking PRIVATE
