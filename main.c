@@ -40,12 +40,12 @@ int main(void) {
     sigfillset(&sa.sa_mask);       
     sa.sa_flags = 0;                
 
-    if (sigaction(SIGINT, &sa, NULL) == SIG_ERR) {
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
         perror("Failed to register SIGINT handler");
         return EXIT_FAILURE;
     }
 
-    if (sigaction(SIGTERM, &sa, NULL) == SIG_ERR) {
+    if (sigaction(SIGTERM, &sa, NULL) == -1) {
         perror("Failed to register SIGTERM handler");
         return EXIT_FAILURE;
     }
@@ -103,15 +103,14 @@ int main(void) {
 
             for (size_t j = 0; j < i; ++j) {
                 pthread_join(chunker_threads[j], NULL);
-
-            pthread_join(watcher_thread, NULL);
-            free(chunker_threads);
-            image_name_queue_destroy(&name_queue);
-            chunk_queue_destroy(&chunker_filtering_queue);
-            return EXIT_FAILURE;
+                pthread_join(watcher_thread, NULL);
+                free(chunker_threads);
+                image_name_queue_destroy(&name_queue);
+                chunk_queue_destroy(&chunker_filtering_queue);
+                return EXIT_FAILURE;
+            }
         }
     }
-
 
     printf("Watcher thread started. Waiting for signal (SIGINT/SIGTERM)...\n");
     while (!stop_flag) 
