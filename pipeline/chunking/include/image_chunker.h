@@ -1,27 +1,8 @@
 #pragma once
 
-#include <image.h> // Include the definition of image_chunk_t from shared/image.h
-#include <stddef.h> // For size_t
-#include <pthread.h> // For pthread_t
-
-// --- Struct to pass input data to the chunker thread ---
-typedef struct {
-    const char *original_filename;
-    unsigned char *image_data;
-    int width;
-    int height;
-    int channels;
-    int chunk_width;
-    int chunk_height;
-} chunker_input_t;
-
-// --- Struct to receive output data from the chunker thread ---
-typedef struct {
-    image_chunk_t **chunks; // Array of chunk pointers
-    int num_chunks_total;   // Total number of chunks created
-    int error_flag;         // 0 on success, non-zero on error
-} chunker_output_t;
-
+#include<image.h> 
+#include<stddef.h> 
+#include<pthread.h> 
 
 /**
  * @brief Loads an image from a file. (Remains the same)
@@ -51,14 +32,12 @@ unsigned char *load_image(const char *filename, int *width, int *height, int *ch
  */
 void *chunk_image_thread(void *arg);
 
-
 /**
- * @brief Frees the memory allocated for an array of image chunks. (Remains the same)
+ * @brief Frees the memory allocated for an array of an image chunk. (Remains the same)
  *
- * Frees the pixel data, original name string, and struct for each chunk,
- * and then frees the array of pointers itself.
- *
- * @param chunks The array of image_chunk_t pointers.
- * @param num_chunks The total number of chunks in the array.
+ * Frees the pixel data, original name string, and struct for a chunk,
+ * and then frees the pointer itself.
+ * IMPORTANT: free the chunk after reconstruction
+ * @param chunk The pointer to image_chunk_t.
  */
-void free_image_chunks(image_chunk_t **chunks, int num_chunks);
+void free_image_chunk(image_chunk_t *chunk);
