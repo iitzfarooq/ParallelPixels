@@ -1,10 +1,14 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include<chunking_internal.h>
-#include<image_chunker.h>
-#include<image_queue.h>
-#include<stb_image.h>
-#include<image.h> 
-#include<math.h>
+#define STB_IMAGE_IMPLEMENTATION 
+
+#include<stdio.h>      
+#include<stdlib.h>    
+#include<string.h>    
+#include<math.h>      
+#include<signal.h>     
+#include<pthread.h>    
+#include<stb_image.h>  
+#include<image_chunker.h>     
+#include<image_queue.h>      
 
 extern volatile sig_atomic_t stop_flag;
 extern image_name_queue_t name_queue;
@@ -47,7 +51,7 @@ static int create_chunks_internal(const char *original_filename,
     } */
 
     int current_chunk_index = 0;
-    int overall_status = 0; // Track if any chunk fails
+    int exit_status = 0; // Track if any chunk fails
 
     // channels -> RGB, Grayscale, etc.
     // RGB contains 3 bytes per pixel (0-255, 0-255, 0-255)
@@ -63,7 +67,7 @@ static int create_chunks_internal(const char *original_filename,
             if (chunk == NULL) {
                 perror("create_chunks_internal: Failed to allocate memory for chunk struct");
                 // free_image_chunk(chunk); // chunk is NULL here, no need to call free
-                overall_status = -1; // Mark failure
+                exit_status = -1; // Mark failure
                 goto cleanup_loop; // Exit loops if allocation fails
             }
             // Initialize pointers to NULL for safe freeing in case of partial allocation failure
@@ -94,7 +98,7 @@ static int create_chunks_internal(const char *original_filename,
                 perror("create_chunks_internal: Failed to allocate memory for chunk filename (strdup)");
                 free_image_chunk(chunk); // Safe to call even if pixel_data is NULL
                 // chunk = NULL; // Not necessary, chunk is freed
-                overall_status = -1;
+                exit_status = -1;
                 goto cleanup_loop;
             }
             // strcpy(chunk->original_image_name, original_filename); // Replaced by strdup
@@ -105,7 +109,7 @@ static int create_chunks_internal(const char *original_filename,
                 perror("create_chunks_internal: Failed to allocate memory for chunk pixel data");
                 free_image_chunk(chunk);
                 // chunk = NULL; // Not necessary, chunk is freed
-                overall_status = -1;
+                exit_status = -1;
                 goto cleanup_loop;
             }
 
@@ -153,13 +157,14 @@ static int create_chunks_internal(const char *original_filename,
                         pthread_self(), current_chunk_index, original_filename);
                 // CRITICAL: How to handle this? The chunk is created but not enqueued.
                 // Maybe free this specific chunk?
+                
                 free_image_chunk(chunk); // Free the chunk that failed to enqueue
                 // What about previously enqueued chunks? Need a strategy.
                 // Maybe return an error code indicating partial failure.
                 // For simplicity here, we might just free and continue, but that leaves orphans.
                 // A better approach might be to signal downstream to discard based on original_image_name.
                 // Or, revert to the original method if this complexity is too high.
-                overall_status = -1;
+                exit_status = -1;
                 goto cleanup_loop; // Stop processing this image on enqueue failure
             } else {
                 // Successfully enqueued, ownership transferred to queue.
@@ -170,52 +175,72 @@ static int create_chunks_internal(const char *original_filename,
         }
     }
 
-    cleanup_loop: // Label to jump to for cleanup within the loops
+    cleanup_loop: 
         if (stop_flag) {
             printf("Thread %lu: Stop flag detected during chunk creation for %s.\n", pthread_self(), original_filename);
-            overall_status = -1; // Indicate incomplete processing due to stop
+            exit_status = -1; 
         }
 
-        if (overall_status == 0) 
+        if (exit_status == 0) 
             printf("Thread %lu: Finished creating %d chunks for %s.\n", pthread_self(), current_chunk_index, original_filename);
         else 
             fprintf(stderr, "Thread %lu: Failed or stopped during chunk creation for %s (processed %d chunks).\n", pthread_self(), original_filename, current_chunk_index);
 
 
-        return overall_status; // Return 0 on success, -1 on failure or stop
+    return exit_status; 
 }
 
 void *chunk_image_thread(void *arg) {
+    while(!stop_flag) {
 
-    char* filename = dequeue_image_name(&name_queue);    
-    if (filename == NULL) {
-        fprintf(stderr, "Chunk Image Thread: Cannot proceed - filename = NULL");
-        return NULL;
+        char* filename = dequeue_image_name(&name_queue);    
+        if (filename == NULL) {
+            fprintf(stderr, "Chunk Image Thread: Cannot proceed - filename = NULL");
+            free(filename);
+            continue;
+        }
+
+        int width, height, channels;
+        
+        unsigned char* image_data = load_image(filename, &width, &height, &channels);    
+        if (image_data == NULL) {
+            fprintf(stderr, "Chunk Image Thread: Cannot proceed - Image Data = NULL");
+            continue;
+        }
+
+        const int fixed_chunk_width = 128; 
+        const int fixed_chunk_height = 128; 
+
+        int calc_chunk_width = (width < fixed_chunk_width)? width: fixed_chunk_width;
+        int calc_chunk_height = (height < fixed_chunk_height)? height: fixed_chunk_height;
+
+        if (width > 0 && calc_chunk_width <= 0) calc_chunk_width = 1;
+        if (height > 0 && calc_chunk_height <= 0) calc_chunk_height = 1;
+
+        printf("Chunker thread %lu: Processing %s with target chunk size: %dx%d\n",
+            pthread_self(), filename, calc_chunk_width, calc_chunk_height);
+
+        int output = create_chunks_internal(
+            filename,
+            image_data,
+            width, height, channels,
+            calc_chunk_width, calc_chunk_height 
+        );
+
+        stbi_image_free(image_data);
+        image_data = NULL;
+        free(filename); 
+        filename = NULL;
+
+        if (output != 0) {
+            fprintf(stderr, "Chunker thread failed for %s.\n", filename);
+            // need handling;
+        }
     }
 
-    int width, height, channels;
+    printf("Chunker thread finished successfully.\n");
     
-    unsigned char* image_data = load_image(filename, &width, &height, &channels);    
-    if (image_data == NULL) 
-        fprintf(stderr, "Chunk Image Thread: Cannot proceed - Image Data = NULL");
-
-    int chunk_width = width / 10, chunk_height = height / 10;
-
-    printf("Chunker thread started for %s.\n", filename);
-
-    int output = create_chunks_internal(
-        filename,
-        image_data,
-        width, height, channels,
-        chunk_width, chunk_height
-    );
-
-    if (output == 0) 
-        printf("Chunker thread finished successfully.\n");
     
-    else 
-        fprintf(stderr, "Chunker thread failed for %s.\n", filename);
-
     return NULL;
 }
 

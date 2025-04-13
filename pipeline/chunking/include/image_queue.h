@@ -1,7 +1,6 @@
 #pragma once
 
 #include<pthread.h> 
-#include<stddef.h>
 
 // Forward declaration
 struct image_name_queue_node;

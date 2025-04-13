@@ -1,4 +1,8 @@
-#include<file_tracker.h>
+#include<stdio.h>     
+#include<stdlib.h>     
+#include<string.h>     
+#include<stdbool.h>    
+#include<file_tracker.h> 
 
 processed_file_t *processed_files = NULL; 
 

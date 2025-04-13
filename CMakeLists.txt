@@ -20,7 +20,8 @@ add_executable(main
     pipeline/chunking/src/file_tracker.c
     pipeline/chunking/src/image_chunker.c
     pipeline/chunking/src/image_queue.c # Assuming this is used for inter-thread comms
-    
+    pipeline/filtering/src/filtering.c
+
     shared/image.c
     # Filtering Module Sources (Add your filtering .c files here)
     # pipeline/filtering/src/filter_logic.c # Example

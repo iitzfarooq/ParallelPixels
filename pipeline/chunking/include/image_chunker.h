@@ -1,8 +1,6 @@
 #pragma once
 
 #include<image.h> 
-#include<stddef.h> 
-#include<pthread.h> 
 
 /**
  * @brief Loads an image from a file. (Remains the same)

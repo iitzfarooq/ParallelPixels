@@ -8,8 +8,8 @@ import threading
 
 # --- Configuration ---
 NUM_IMAGES = 1
-IMAGE_WIDTH = 100
-IMAGE_HEIGHT = 100
+IMAGE_WIDTH = 1920
+IMAGE_HEIGHT = 1080
 IMAGE_DIR = "./images" # Download images to the stream directory
 API_URL = f"https://picsum.photos/{IMAGE_WIDTH}/{IMAGE_HEIGHT}"
 # --- End Configuration ---

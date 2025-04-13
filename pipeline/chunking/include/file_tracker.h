@@ -1,7 +1,7 @@
 #pragma once
 
-#include<chunking_internal.h>
 #include<uthash.h>
+#include<stdbool.h>
 
 typedef void (*char_process_function_ptr)(const char*);
 typedef void (*void_process_function_ptr)(void);

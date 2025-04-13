@@ -1,6 +1,13 @@
+#include<stdio.h> 
+#include<dirent.h>         
+#include<string.h>         
+#include<unistd.h>        
+#include<pthread.h>    
+#include<stdbool.h>      
+#include<signal.h>        
+#include<stdlib.h>     
 #include<directory_monitor.h>
-#include<chunking_internal.h>
-#include<image_queue.h> 
+#include<image_queue.h>       
 
 extern volatile sig_atomic_t stop_flag; 
 extern image_name_queue_t name_queue;

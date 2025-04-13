@@ -1,9 +1,5 @@
 #pragma once
 
-#include<image_queue.h>
-#include<file_tracker.h>
-#include<chunking_internal.h>
-
 /**
  * @brief Thread function to continuously scan a directory for new image files
  *        (.jpg, .png) and process them if they haven't been processed before.
