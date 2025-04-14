@@ -253,13 +253,3 @@ void free_image_chunk(image_chunk_t *chunk) {
     free(chunk->pixel_data);
     free(chunk);
 }
-
-void assign_threads_to_chunk(void) {
-    image_chunk_t* chunk = chunk_dequeue(&chunker_filtering_queue);
-    pthread_t thread;
-    int result = pthread_create(&thread, NULL, greyscale, NULL);
-    if (result) {
-        fprintf(stderr, "Error creating thread: %d\n", result);
-        return;
-    }
-}
