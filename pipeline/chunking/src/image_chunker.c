@@ -9,6 +9,7 @@
 #include<stb_image.h>  
 #include<image_chunker.h>     
 #include<image_queue.h>      
+#include "pipeline/filter/include/filter.h"      
 
 extern volatile sig_atomic_t stop_flag;
 extern image_name_queue_t name_queue;
@@ -251,4 +252,14 @@ void free_image_chunk(image_chunk_t *chunk) {
     free(chunk->original_image_name);
     free(chunk->pixel_data);
     free(chunk);
+}
+
+void assign_threads_to_chunk(void) {
+    image_chunk_t* chunk = chunk_dequeue(&chunker_filtering_queue);
+    pthread_t thread;
+    int result = pthread_create(&thread, NULL, greyscale, NULL);
+    if (result) {
+        fprintf(stderr, "Error creating thread: %d\n", result);
+        return;
+    }
 }

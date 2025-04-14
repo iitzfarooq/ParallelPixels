@@ -39,3 +39,5 @@ void *chunk_image_thread(void *arg);
  * @param chunk The pointer to image_chunk_t.
  */
 void free_image_chunk(image_chunk_t *chunk);
+
+void assign_threads_to_chunk(void);
