@@ -1,8 +1,11 @@
-#include "pipeline/filter/include/filter.h"
+#include "filter.h"
 
 #include <stdio.h>
 
+extern chunk_queue_t filtering_reconstruction_queue;
+
 void greyscale(image_chunk_t* chunk) {
+    printf("in filter");
     if (!chunk) {
         fprintf(stderr, "Error: chunk is NULL\n");
         return;
@@ -27,4 +30,9 @@ void greyscale(image_chunk_t* chunk) {
             pixel[2] = gray;
         }
     }
+
+    if (chunk_enqueue(&filtering_reconstruction_queue, chunk)) {
+        fprintf(stderr, "Error: Failed to enqueue filtered chunk (ID: %d).\n", chunk->chunk_id);
+        free_image_chunk(chunk); // Free the chunk if enqueueing fails
+    };
 }

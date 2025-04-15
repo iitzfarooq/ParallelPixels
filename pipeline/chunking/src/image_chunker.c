@@ -9,7 +9,6 @@
 #include<stb_image.h>  
 #include<image_chunker.h>     
 #include<image_queue.h>      
-#include "pipeline/filter/include/filter.h"      
 
 extern volatile sig_atomic_t stop_flag;
 extern image_name_queue_t name_queue;

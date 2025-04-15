@@ -10,6 +10,7 @@
 #include<file_tracker.h>
 #include<image_chunker.h>
 #include<directory_monitor.h>
+#include<chunk_threader.h>
 
 image_name_queue_t name_queue;
 chunk_queue_t chunker_filtering_queue;
@@ -111,6 +112,8 @@ int main(void) {
             }
         }
     }
+    
+    assign_threads_to_chunk();
 
     printf("Watcher thread started. Waiting for signal (SIGINT/SIGTERM)...\n");
     while (!stop_flag) 

@@ -4,6 +4,7 @@ project(ParallelPipeline C) # Changed project name slightly
 # Set C standard (optional, but good practice)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
+set(CMAKE_BUILD_TYPE Debug)
 
 # Find pthreads (likely needed for threading within the single process)
 find_package(Threads REQUIRED)
@@ -19,6 +20,8 @@ add_executable(main
     pipeline/chunking/src/directory_monitor.c
     pipeline/chunking/src/file_tracker.c
     pipeline/chunking/src/image_chunker.c
+    pipeline/filter/src/chunk_threader.c
+    pipeline/filter/src/filter.c
     pipeline/chunking/src/image_queue.c # Assuming this is used for inter-thread comms
     #pipeline/filtering/src/filtering.c
 
@@ -36,7 +39,7 @@ add_executable(main
 target_include_directories(main PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/shared                   # Shared types (image.h)
     ${CMAKE_CURRENT_SOURCE_DIR}/pipeline/chunking/include # Chunking headers + uthash
-    ${CMAKE_CURRENT_SOURCE_DIR}/pipeline/filtering/include # Filtering headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/pipeline/filter/include # Filtering headers
     ${CMAKE_CURRENT_SOURCE_DIR}/pipeline/reconstruction/include # Reconstruction headers
 )
 
