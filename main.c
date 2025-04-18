@@ -25,8 +25,6 @@ void ExitHandler(int signum) {
 }
 
 int main(void) {
-    const size_t num_threads = 1;
-    pthread_t watcher, chunker;
     const char *directoryPath = "../images";
 
     long cores = sysconf(_SC_NPROCESSORS_ONLN);
@@ -82,7 +80,7 @@ int main(void) {
     }
     
     printf("Starting image watcher thread for directory: %s\n", directoryPath);
-    if (pthread_create(&watcher, NULL, read_images_from_directory, (void *)directoryPath) != 0) { // Removed watcher_attr
+    if (pthread_create(&watcher_thread, NULL, read_images_from_directory, (void *)directoryPath) != 0) { // Removed watcher_attr
         perror("Failed to create watcher thread");
         return EXIT_FAILURE;
     }
@@ -121,7 +119,7 @@ int main(void) {
 
     printf("\nShutdown signal received.\n");
     printf("Attempting to cancel watcher & chunker thread (if possible)...\n");
-    pthread_join(watcher, NULL); 
+    pthread_join(watcher_thread, NULL); 
 
     printf("Broadcasting to chunker threads...\n");
     pthread_mutex_lock(&name_queue.lock); 

@@ -49,7 +49,9 @@ int enqueue_image_name(image_name_queue_t *q, const char *name) {
 
     pthread_mutex_lock(&q->lock);
 
-    if (q->tail == NULL) { 
+    if (q->tail == NULL) {
+        
+        // very unlikely to happen
         if (q->head != NULL) {
             fprintf(stderr, "enqueue_image_name: Queue inconsistency detected (tail is NULL, head is not)\n");
             pthread_mutex_unlock(&q->lock);

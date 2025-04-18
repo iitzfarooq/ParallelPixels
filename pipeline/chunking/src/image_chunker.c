@@ -66,11 +66,10 @@ static int create_chunks_internal(const char *original_filename,
             image_chunk_t *chunk = (image_chunk_t*)malloc(sizeof(image_chunk_t));
             if (chunk == NULL) {
                 perror("create_chunks_internal: Failed to allocate memory for chunk struct");
-                // free_image_chunk(chunk); // chunk is NULL here, no need to call free
-                exit_status = -1; // Mark failure
-                goto cleanup_loop; // Exit loops if allocation fails
+                exit_status = -1; 
+                goto cleanup_loop; 
             }
-            // Initialize pointers to NULL for safe freeing in case of partial allocation failure
+
             chunk->original_image_name = NULL;
             chunk->pixel_data = NULL;
 
@@ -83,8 +82,8 @@ static int create_chunks_internal(const char *original_filename,
                 effectively subtracted, the chunk obtained will be smalled than `chunk_width`
             */
 
-            chunk->width = (chunk->offset_x + chunk_width > width) ? (width - chunk->offset_x) : chunk_width;
-            chunk->height = (chunk->offset_y + chunk_height > height) ? (height - chunk->offset_y) : chunk_height;
+            chunk->width = (chunk->offset_x + chunk_width > width)? (width - chunk->offset_x): chunk_width;
+            chunk->height = (chunk->offset_y + chunk_height > height)? (height - chunk->offset_y): chunk_height;
             chunk->channels = channels;
             chunk->chunk_id = current_chunk_index;
             chunk->original_image_num_chunks = num_chunks_total;
@@ -92,7 +91,6 @@ static int create_chunks_internal(const char *original_filename,
             chunk->original_image_width = width;
             chunk->original_image_height = height;
 
-            // Use strdup for safer string copy & allocation
             chunk->original_image_name = strdup(original_filename);
             if (chunk->original_image_name == NULL) {
                 perror("create_chunks_internal: Failed to allocate memory for chunk filename (strdup)");
@@ -101,14 +99,12 @@ static int create_chunks_internal(const char *original_filename,
                 exit_status = -1;
                 goto cleanup_loop;
             }
-            // strcpy(chunk->original_image_name, original_filename); // Replaced by strdup
 
             chunk->data_size_bytes = chunk->width * chunk->height * bytes_per_pixel;
             chunk->pixel_data = (unsigned char*)malloc(chunk->data_size_bytes);
             if (chunk->pixel_data == NULL) {
                 perror("create_chunks_internal: Failed to allocate memory for chunk pixel data");
                 free_image_chunk(chunk);
-                // chunk = NULL; // Not necessary, chunk is freed
                 exit_status = -1;
                 goto cleanup_loop;
             }
@@ -123,8 +119,7 @@ static int create_chunks_internal(const char *original_filename,
                 The sequence of bytes is stored as follows: [P(0, 0)-R, P(0, 0)-G, P(0, 0)-B, P(0, 1)-R, P(0, 1)-G, P(0, 1)-B]
             */
 
-            size_t src_row_stride = width * bytes_per_pixel; // pixels per row in the image
-            // size_t chunk_row_stride = chunk_width * bytes_per_pixel; // Incorrect for memcpy size if chunk_width != chunk->width
+            size_t src_row_stride = width * bytes_per_pixel; // bytes per row in the image
             size_t chunk_row_bytes = chunk->width * bytes_per_pixel; // Bytes to copy per row for this chunk
 
             for(size_t row = 0; row < chunk->height; row++) {

@@ -7,6 +7,7 @@
 #include<signal.h>        
 #include<stdlib.h>     
 #include<directory_monitor.h>
+#include<file_tracker.h>
 #include<image_queue.h>       
 
 extern volatile sig_atomic_t stop_flag; 
@@ -95,11 +96,11 @@ void *read_images_from_directory(void *arg) {
             if (should_process) {
                 char imagePath[1024];
                 snprintf(imagePath, sizeof(imagePath), "%s/%s", directoryPath, current_filename);
-                if (enqueue_image_name(&name_queue, imagePath) != 0) {
+                if (enqueue_image_name(&name_queue, imagePath) != 0) 
                     fprintf(stderr, "Thread %lu: Failed to enqueue image %s\n", pthread_self(), imagePath);
-                }
             }
         }
+        
         closedir(dir);
         dir = NULL; 
 
