@@ -71,11 +71,5 @@ void directional_blur(image_chunk_t* chunk, int line_size) {
             pixel[i+j+1] = g;
             pixel[i+j+2] = b;
         }
-        
     }
-
-    if (chunk_enqueue(&filtering_reconstruction_queue, chunk)) {
-        fprintf(stderr, "Error: Failed to enqueue filtered chunk (ID: %d).\n", chunk->chunk_id);
-        free_image_chunk(chunk); // Free the chunk if enqueueing fails
-    };
 }
