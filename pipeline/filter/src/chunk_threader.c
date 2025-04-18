@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <stdio.h>
+#include <image_chunker.h>
+#include <chunk_threader.h>
+#include <filter.h>
 
 extern volatile sig_atomic_t stop_flag;
 
