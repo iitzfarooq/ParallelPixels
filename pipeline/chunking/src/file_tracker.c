@@ -10,7 +10,7 @@ processed_file_t *processed_files = NULL;
 void add_processed_file(const char *filename) {
     processed_file_t *entry = malloc(sizeof(processed_file_t));
     if (!entry) {
-        perror("Failed to allocate memory for hash entry");
+        perror("add_processed_file: Failed to allocate memory for hash entry");
         return; 
     }
 

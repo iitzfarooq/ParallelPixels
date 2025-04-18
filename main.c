@@ -71,6 +71,11 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
+    if (discarded_images_init()) {
+        fprintf(stderr, "Failed to initialize discarded images table.\n");
+        return EXIT_FAILURE;
+    }
+
     chunker_threads = malloc(num_chunker_threads * sizeof(pthread_t));
     if (chunker_threads == NULL) {
         perror("Failed to allocate memory for chunker thread IDs");
@@ -143,6 +148,7 @@ int main(void) {
     free_processed_files(); 
     image_name_queue_destroy(&name_queue);
     chunk_queue_destroy(&chunker_filtering_queue);
+    free_discarded_images_table();
 
     printf("Cleanup complete. Exiting.\n");
 

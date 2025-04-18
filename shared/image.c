@@ -120,3 +120,60 @@ void chunk_queue_destroy(chunk_queue_t* q) {
 
     printf("Chunk queue destroyed successfully\n");
 }
+
+discarded_image_entry_t* discarded_images_head = NULL;
+pthread_mutex_t discarded_images_lock;
+
+int discarded_images_init(void) {
+    if (pthread_mutex_init(&discarded_images_lock, NULL) != 0) {
+        perror("discard_images_init - Cannot initialize mutex");
+        return -1;
+    }
+}
+
+int discarded_images_table_add(const char *filename) {
+    discarded_image_entry_t* entry;
+
+    pthread_mutex_lock(&discarded_images_lock);
+    HASH_FIND_STR(discarded_images_head, filename, entry);
+
+    if (entry == NULL) {
+        entry = (discarded_image_entry_t*)malloc(sizeof(discarded_image_entry_t));
+        if (!entry) {
+            perror("discarded_images_table_add - Failed to allocate memory for hash entry");
+            return -1;
+        }     
+
+        strncpy(entry->name, filename, sizeof(entry->name) - 1);
+        entry->name[sizeof(entry->name) - 1] = '\0';
+
+        HASH_ADD_STR(discarded_images_head, name, entry);
+    }
+
+    pthread_mutex_unlock(&discarded_images_lock);
+
+    return 0;
+}
+
+bool discarded_images_table_contains(const char *filename) {
+    discarded_image_entry_t* entry;
+
+    pthread_mutex_lock(&discarded_images_lock);
+    HASH_FIND_STR(discarded_images_head, filename, entry);
+    pthread_mutex_unlock(&discarded_images_lock);
+
+    return entry != NULL;
+}
+
+void free_discarded_images_table(void) {
+    discarded_image_entry_t* current_entry, *tmp;
+
+    pthread_mutex_lock(&discarded_images_lock);
+    HASH_ITER(hh, discarded_images_head, current_entry, tmp) {
+        HASH_DEL(discarded_images_head, current_entry); 
+        free(current_entry); 
+    }
+
+    pthread_mutex_unlock(&discarded_images_lock);
+    pthread_mutex_destroy(&discarded_images_lock);
+}

@@ -9,6 +9,7 @@
 #include<stb_image.h>  
 #include<image_chunker.h>     
 #include<image_queue.h>      
+#include<image.h>
 
 extern volatile sig_atomic_t stop_flag;
 extern image_name_queue_t name_queue;
@@ -150,17 +151,9 @@ static int create_chunks_internal(const char *original_filename,
             if (chunk_enqueue(&chunker_filtering_queue, chunk) != 0) {
                 fprintf(stderr, "Thread %lu: create_chunks_internal: Failed to enqueue chunk %d for %s\n",
                         pthread_self(), current_chunk_index, original_filename);
-                // CRITICAL: How to handle this? The chunk is created but not enqueued.
-                // Maybe free this specific chunk?
-                
-                free_image_chunk(chunk); // Free the chunk that failed to enqueue
-                // What about previously enqueued chunks? Need a strategy.
-                // Maybe return an error code indicating partial failure.
-                // For simplicity here, we might just free and continue, but that leaves orphans.
-                // A better approach might be to signal downstream to discard based on original_image_name.
-                // Or, revert to the original method if this complexity is too high.
+                free_image_chunk(chunk); 
                 exit_status = -1;
-                goto cleanup_loop; // Stop processing this image on enqueue failure
+                goto cleanup_loop; 
             } else {
                 // Successfully enqueued, ownership transferred to queue.
                 // Do NOT free 'chunk' here.
@@ -178,9 +171,10 @@ static int create_chunks_internal(const char *original_filename,
 
         if (exit_status == 0) 
             printf("Thread %lu: Finished creating %d chunks for %s.\n", pthread_self(), current_chunk_index, original_filename);
-        else 
+        else {
             fprintf(stderr, "Thread %lu: Failed or stopped during chunk creation for %s (processed %d chunks).\n", pthread_self(), original_filename, current_chunk_index);
-
+            discarded_images_table_add(original_filename);
+        }
 
     return exit_status; 
 }
@@ -190,7 +184,7 @@ void *chunk_image_thread(void *arg) {
 
         char* filename = dequeue_image_name(&name_queue);    
         if (filename == NULL) {
-            fprintf(stderr, "Chunk Image Thread: Cannot proceed - filename = NULL");
+            fprintf(stderr, "Chunk Image Thread: Cannot proceed - filename = NULL\n");
             free(filename);
             continue;
         }
@@ -199,7 +193,8 @@ void *chunk_image_thread(void *arg) {
         
         unsigned char* image_data = load_image(filename, &width, &height, &channels);    
         if (image_data == NULL) {
-            fprintf(stderr, "Chunk Image Thread: Cannot proceed - Image Data = NULL");
+            fprintf(stderr, "Chunk Image Thread: Cannot proceed - Image Data = NULL\n");
+            free(filename);
             continue;
         }
 
@@ -222,15 +217,14 @@ void *chunk_image_thread(void *arg) {
             calc_chunk_width, calc_chunk_height 
         );
 
+        if (output != 0) 
+            fprintf(stderr, "Chunker thread failed for %s.\n", filename);
+            // need handling;
+
         stbi_image_free(image_data);
         image_data = NULL;
         free(filename); 
         filename = NULL;
-
-        if (output != 0) {
-            fprintf(stderr, "Chunker thread failed for %s.\n", filename);
-            // need handling;
-        }
     }
 
     printf("Chunker thread finished successfully.\n");

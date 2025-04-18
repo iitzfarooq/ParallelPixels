@@ -10,8 +10,12 @@
 extern volatile sig_atomic_t stop_flag;
 
 void *process_chunk(void *arg) {
-    image_chunk_t *chunk = (image_chunk_t *)arg;
-
+    image_chunk_t *chunk = chunk_dequeue(&chunker_filtering_queue);
+    
+    if (chunk == NULL || stop_flag) {
+        // If the queue is empty, wait or check for stop_flag
+        pthread_exit(NULL);
+    }
     // Process the chunk (e.g., apply greyscale filter)
     greyscale(chunk);
 
@@ -25,24 +29,23 @@ void *process_chunk(void *arg) {
 }
 
 void assign_threads_to_chunk(void) {
-    while (!stop_flag) {
-        // Dequeue a chunk from the queue
-        image_chunk_t *chunk = chunk_dequeue(&chunker_filtering_queue);
-        if (chunk == NULL) {
-            // If the queue is empty, wait or check for stop_flag
-            continue;
-        }
-
+    //while (!stop_flag) {
         // Create a new thread for the chunk
         pthread_t thread;
-        int result = pthread_create(&thread, NULL, process_chunk, (void *)chunk);
+        int result = pthread_create(&thread, NULL, process_chunk, (void*) NULL);
+        
         if (result) {
-            fprintf(stderr, "Error creating thread for chunk: %d\n", result);
-            free_image_chunk(chunk); // Free the chunk if thread creation fails
-            continue;
+            perror("Error creating thread for chunk");
+            //continue;
         }
 
         // Detach the thread to avoid needing to join it later
         pthread_detach(thread);
-    }
+    //}
+
+    while(!stop_flag);
+
+    pthread_mutex_lock(&chunker_filtering_queue.lock);
+    pthread_cond_broadcast(&chunker_filtering_queue.cond_not_empty);
+    pthread_mutex_unlock(&chunker_filtering_queue.lock);
 }
