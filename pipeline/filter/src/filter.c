@@ -18,17 +18,14 @@ void greyscale(image_chunk_t* chunk) {
 
     int width = chunk->width; 
     int height = chunk->height;
-    int offset_x = chunk->offset_x;
-    int offset_y = chunk->offset_y;
+    int channels = chunk->channels;
 
-    for (int i=offset_y; i<=height-1; i++) {
-        for (int j=offset_x; j<=width-1; j+=3) {
-            unsigned char* pixel = chunk->pixel_data + (i * width + j) * 3; // Assuming RGB format
-            unsigned char gray = (unsigned char)(0.299 * pixel[0] + 0.587 * pixel[1] + 0.114 * pixel[2]);
-            pixel[0] = gray;
-            pixel[1] = gray;
-            pixel[2] = gray;
-        }
+    for (int i=0; i<width*height*channels; i+=channels) {
+        unsigned char* pixel = chunk->pixel_data;
+        unsigned char gray = (unsigned char)(0.299 * pixel[i+0] + 0.587 * pixel[i+1] + 0.114 * pixel[i+2]); // assuming RGB
+        pixel[0] = gray;
+        pixel[1] = gray;
+        pixel[2] = gray;
     }
 
     if (chunk_enqueue(&filtering_reconstruction_queue, chunk)) {
