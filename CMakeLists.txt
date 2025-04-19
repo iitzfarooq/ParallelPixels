@@ -40,7 +40,7 @@ target_include_directories(main PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/shared                   # Shared types (image.h)
     ${CMAKE_CURRENT_SOURCE_DIR}/pipeline/chunking/include # Chunking headers + uthash
     ${CMAKE_CURRENT_SOURCE_DIR}/pipeline/filter/include # Filtering headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/pipeline/reconstruction/include # Reconstruction headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/pipeline/reconstruction # Reconstruction headers
 )
 
 # Link main against pthreads and the math library

@@ -1,6 +1,7 @@
 #pragma once // Prevent multiple inclusions
 
 #include<stddef.h> // For size_t
+#include<stdint.h>
 #include<pthread.h> // For pthread types
 #include<uthash.h>
 #include<stdbool.h>
@@ -45,6 +46,13 @@ typedef struct {
 
 } image_chunk_t;
 
+typedef struct {
+    unsigned char *pixel_data;
+
+    size_t width, height;
+    uint32_t channels;
+} image_t;
+
 /**
  * @brief Node structure for a linked list queue holding image chunks.
  * @note This structure embeds the image_chunk_t directly. For efficiency and
@@ -52,10 +60,11 @@ typedef struct {
  *       consider storing a pointer (image_chunk_t*) instead.
  * IMPORTANT: The image_chunk_t* is created only once and changes ownership, make sure to free it after reconstruction.
  */
-typedef struct chunk_queue_node { // Renamed for clarity
+typedef struct chunk_queue_node
+{                                  // Renamed for clarity
     struct chunk_queue_node* next; /**< Pointer to the next node in the queue, or NULL if this is the last node. */
     image_chunk_t* chunk;           /**< The image chunk data stored in this node. Consider using a pointer instead. */
-} chunk_queue_node_t; // Renamed type
+} chunk_queue_node_t;               // Renamed type
 
 /**
  * @brief Manages a thread-safe queue of image chunks.
